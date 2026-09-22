@@ -1,3 +1,7 @@
+plugins { // Don't touch this.
+    id("net.mullvad.rust-android") version("0.10.1")
+}
+
 apply plugin: 'com.android.application'
 
 //
@@ -26,4 +30,19 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+}
+
+// Note to teams: DO NOT TOUCH BELOW.
+
+cargo {
+    module  = "team_code_rust"
+    libname = "team_code_rust"
+    targets = ["arm", "arm64"]
+    apiLevel = 25
+}
+
+def rustJniLibsDir = layout.buildDirectory.dir("rustJniLibs/android").get()
+tasks.matching { it.name.matches(~/merge.*JniLibFolders/) }.configureEach {
+    inputs.dir(rustJniLibsDir)
+    dependsOn("cargoBuild")
 }

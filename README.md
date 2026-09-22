@@ -1,5 +1,7 @@
 ## NOTICE
 
+You need NDK version 30.0.14904198 to build this.
+
 This repository contains the public FTC SDK for the BIOBUZZ (2026-2027) competition season.
 
 ## Welcome!

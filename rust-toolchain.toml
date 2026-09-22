@@ -1,0 +1,11 @@
+[toolchain]
+channel = "stable"
+targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
+components = [
+    "cargo",
+    "clippy",
+    "rustc",
+    "rust-analyzer",
+    "rustfmt",
+    "rust-std",
+]
