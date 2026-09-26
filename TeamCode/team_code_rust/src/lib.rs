@@ -4,6 +4,7 @@ use std::time::Duration;
 use ftc::{PressEdge, ftc, hardware::{Direction, RunMode}, prelude::*};
 
 /// Driving subsystem.
+#[derive(Debug)]
 pub struct Drive {
     left_front: DcMotor,
     right_front: DcMotor,
@@ -15,6 +16,7 @@ pub struct Drive {
 
 impl Drive {
     /// Get a [`Drive`] with the default names.
+    #[must_use]
     pub fn with_default_names(hardware: &Hardware) -> Self {
         let out = Drive {
             left_front: hardware.get("leftFront"),
