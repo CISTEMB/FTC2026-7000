@@ -42,7 +42,7 @@ jobs:
       uses: actions/upload-pages-artifact@v3
       with:
         # Generated documentation
-        path: 'target/doc'
+        path: 'TeamCode/team_code_rust/target/doc'
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v5
