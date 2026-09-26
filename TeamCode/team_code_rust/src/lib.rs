@@ -1,7 +1,9 @@
-//! Example Rust opmodes. You can have as many op modes as you want in each file.
+//! The main code.
 use std::time::Duration;
 
 use ftc::{PressEdge, ftc, hardware::{Direction, RunMode}, prelude::*};
+
+pub mod pinpoint;
 
 /// Driving subsystem.
 #[derive(Debug)]
