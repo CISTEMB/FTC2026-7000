@@ -20,7 +20,6 @@ concurrency:
 
 jobs:
   document:
-    name: generate documentation and publish it
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -33,6 +32,7 @@ jobs:
         components: rustc, cargo
     - name: generate documentation
       run: |
+        cd TeamCode/team_code_rust
         cargo doc
     - name: Setup Pages
       uses: actions/configure-pages@v5
