@@ -29,10 +29,8 @@ jobs:
       with:
         # Rust toolchain specification -- see https://rust-lang.github.io/rustup/concepts/toolchains.html#toolchain-specification
         toolchain: stable
-        # Comma-separated list of target triples to install for this toolchain
-        targets: armv7-linux-androideabi, aarch64-linux-android
         # Comma-separated list of components to be additionally installed
-        components: rustdoc
+        components: rustc, cargo
     - name: generate documentation
       run: |
         cargo doc
