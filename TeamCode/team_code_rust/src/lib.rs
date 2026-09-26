@@ -1,10 +1,10 @@
 //! Example Rust opmodes. You can have as many op modes as you want in each file.
 use std::time::Duration;
 
-use ftc::{PressEdge, ftc, hardware::{DcMotor, Direction, Hardware, RunMode}, log::info};
+use ftc::{PressEdge, ftc, hardware::{Direction, RunMode}, prelude::*};
 
-/// Motor subsystem.
-struct Motors {
+/// Driving subsystem.
+pub struct Drive {
     left_front: DcMotor,
     right_front: DcMotor,
     left_rear: DcMotor,
@@ -13,10 +13,10 @@ struct Motors {
     fast: bool,
 }
 
-impl Motors {
-    /// Get a [`Motors`] with the default names.
-    fn with_default_names(hardware: &Hardware) -> Self {
-        let out = Motors {
+impl Drive {
+    /// Get a [`Drive`] with the default names.
+    pub fn with_default_names(hardware: &Hardware) -> Self {
+        let out = Drive {
             left_front: hardware.get("leftFront"),
             right_front: hardware.get("rightFront"),
             left_rear: hardware.get("leftRear"),
@@ -28,13 +28,13 @@ impl Motors {
         out
     }
     /// Set the [`RunMode`] of all of the motors.
-    fn set_mode(&self, mode: RunMode) {
+    pub fn set_mode(&self, mode: RunMode) {
         for motor in [&self.left_front, &self.right_front, &self.left_rear, &self.right_rear] {
             motor.set_mode(mode);
         }
     }
     /// Arcade drive. Pass in values from the gamepad.
-    fn arcade_drive(&self, forward: f64, turn: f64, strafe: f64) {
+    pub fn arcade_drive(&self, forward: f64, turn: f64, strafe: f64) {
         let turn = turn * 0.75;
         let strafe = -strafe;
 
@@ -57,10 +57,10 @@ impl Motors {
 
 /// Base teleop
 #[ftc(name = "Teleop", linear, teleop)]
-fn teleop(ftc: &ftc::FtcContext) {
+pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
 
-    let mut motors = Motors::with_default_names(&hardware);
+    let mut motors = Drive::with_default_names(&hardware);
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();

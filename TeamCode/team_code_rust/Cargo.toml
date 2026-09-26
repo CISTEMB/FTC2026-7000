@@ -13,7 +13,6 @@ crate-type = ["cdylib"]
 # Feel free to customize the below! Do not touch the above though unless you know what you're doing!
 [lints.rust]
 missing_docs = "warn"
-missing_debug_implementations = "warn"
 unused_import_braces = "warn"
 
 [lints.clippy]
