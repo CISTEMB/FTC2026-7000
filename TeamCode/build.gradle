@@ -1,8 +1,22 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        google()
+        maven {
+            url "https://repo.dairy.foundation/releases"
+        }
+    }
+    dependencies {
+        classpath "dev.frozenmilk:Load:0.3.2"
+    }
+}
+
 plugins { // Don't touch this.
     id("net.mullvad.rust-android") version("0.10.1")
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'dev.frozenmilk.sinister.sloth.load'
 
 //
 // build.gradle in TeamCode
@@ -25,6 +39,8 @@ android {
 
     packagingOptions {
         jniLibs.useLegacyPackaging true
+        doNotStrip "*/arm64-v8a/*.so"
+        doNotStrip "*/armeabi-v7a/*.so"
     }
 }
 
