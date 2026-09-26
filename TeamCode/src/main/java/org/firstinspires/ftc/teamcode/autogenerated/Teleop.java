@@ -8,10 +8,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import dev.frozenmilk.sinister.loading.Pinned;
 
-@TeleOp(name = "Example: My Linear Op Mode", group = "Example")
+@TeleOp(name = "Teleop")
 
 @Pinned
-public class MyLinearOpMode extends LinearOpMode {
+public class Teleop extends LinearOpMode {
     private long rust_id;
     @Override
     public native void runOpMode();

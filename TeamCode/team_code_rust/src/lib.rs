@@ -1,15 +1,66 @@
 //! Example Rust opmodes. You can have as many op modes as you want in each file.
 use std::time::Duration;
 
-use ftc::{PressEdge, ftc, hardware::DcMotor, log::info};
+use ftc::{PressEdge, ftc, hardware::{DcMotor, Direction, Hardware, RunMode}, log::info};
 
-/// Example linear op mode.
-#[ftc(name = "Example: My Linear Op Mode", linear, teleop, group = "Example")]
-fn my_linear_op_mode(ftc: &ftc::FtcContext) {
-    // equivalent to hardwareMap.get(DcMotor.class, "motor") in Java
-    // also fun fact: the syntax `::<T>` where T is a type is affectionately called the turbofish!
-    let motor = ftc.hardware().get::<DcMotor>("motor");
-    motor.set_direction(ftc::hardware::Direction::Forward);
+/// Motor subsystem.
+struct Motors {
+    left_front: DcMotor,
+    right_front: DcMotor,
+    left_rear: DcMotor,
+    right_rear: DcMotor,
+    /// Whether we're currently in fast mode.
+    fast: bool,
+}
+
+impl Motors {
+    /// Get a [`Motors`] with the default names.
+    fn with_default_names(hardware: &Hardware) -> Self {
+        let out = Motors {
+            left_front: hardware.get("leftFront"),
+            right_front: hardware.get("rightFront"),
+            left_rear: hardware.get("leftRear"),
+            right_rear: hardware.get("rightRear"),
+            fast: false,
+        };
+        out.right_front.set_direction(Direction::Reverse);
+        out.right_rear.set_direction(Direction::Reverse);
+        out
+    }
+    /// Set the [`RunMode`] of all of the motors.
+    fn set_mode(&self, mode: RunMode) {
+        for motor in [&self.left_front, &self.right_front, &self.left_rear, &self.right_rear] {
+            motor.set_mode(mode);
+        }
+    }
+    /// Arcade drive. Pass in values from the gamepad.
+    fn arcade_drive(&self, forward: f64, turn: f64, strafe: f64) {
+        let turn = turn * 0.75;
+        let strafe = -strafe;
+
+        // Calculate speed for each motor
+        let left_front = forward + turn + strafe;
+        let right_front = forward - turn - strafe;
+        let left_rear = forward + turn - strafe;
+        let right_rear = forward - turn + strafe;
+
+        self.set_mode(RunMode::RunWithoutEncoder);
+
+        let multiple = if self.fast { 2.0 } else { 1.0 };
+
+        self.left_front.set_power(left_front * multiple);
+        self.right_front.set_power(right_front * multiple);
+        self.left_rear.set_power(left_rear * multiple);
+        self.right_rear.set_power(right_rear * multiple);
+    }
+}
+
+/// Base teleop
+#[ftc(name = "Teleop", linear, teleop)]
+fn teleop(ftc: &ftc::FtcContext) {
+    let hardware = ftc.hardware();
+
+    let mut motors = Motors::with_default_names(&hardware);
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -21,12 +72,17 @@ fn my_linear_op_mode(ftc: &ftc::FtcContext) {
     let gamepad1 = ftc.gamepad1();
 
     while ftc.running() {
-        let power = f64::from(gamepad1.left_stick_y());
         ftc.telemetry().add_data("Status", "Running");
-        ftc.telemetry().add_data("Power", power);
-        ftc.telemetry().update();
 
-        motor.set_power(power);
+        let (forward, turn, strafe) = (gamepad1.left_stick_y().into(), gamepad1.left_stick_x().into(), gamepad1.right_stick_x().into());
+
+        ftc.telemetry().add_data("Forward", forward);
+        ftc.telemetry().add_data("Turn", turn);
+        ftc.telemetry().add_data("Strafe", strafe);
+
+        motors.fast = gamepad1.left_trigger() > 0.75;
+        motors.arcade_drive(forward, turn, strafe);
+        ftc.telemetry().update();
     }
 }
 
@@ -45,7 +101,8 @@ struct IterativeState {
     name = "Example: My Iterative Op Mode",
     iterative,
     teleop,
-    group = "Example"
+    group = "Example",
+    disabled,
 )]
 fn my_iterative_op_mode(iterative: &ftc::IterativeContext) {
     iterative.init(|ftc: &ftc::FtcContext, state: &mut IterativeState| {

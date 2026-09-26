@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import dev.frozenmilk.sinister.loading.Pinned;
 
 @TeleOp(name = "Example: My Iterative Op Mode", group = "Example")
-
+@Disabled
 @Pinned
 public class MyIterativeOpMode extends OpMode {
     private long rust_id;
