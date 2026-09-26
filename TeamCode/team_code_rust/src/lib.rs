@@ -74,7 +74,7 @@ fn teleop(ftc: &ftc::FtcContext) {
     while ftc.running() {
         ftc.telemetry().add_data("Status", "Running");
 
-        let (forward, turn, strafe) = (gamepad1.left_stick_y().into(), gamepad1.left_stick_x().into(), gamepad1.right_stick_x().into());
+        let (forward, turn, strafe) = (gamepad1.left_stick_y(), gamepad1.left_stick_x(), gamepad1.right_stick_x());
 
         ftc.telemetry().add_data("Forward", forward);
         ftc.telemetry().add_data("Turn", turn);
