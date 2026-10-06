@@ -4,8 +4,8 @@ use ftc::{call_method, device, enum_variant_into, hardware::{Direction, IntoJniO
 
 device!(
     GoBildaPinpointDriver,
-    JAVA_CLASS = "org.firstinspires.ftc.teamcode.GoBildaPinpointDriver";
-    JNI_CLASS = "org/firstinspires/ftc/teamcode/GoBildaPinpointDriver";
+    JAVA_CLASS = "com.qualcomm.hardware.gobilda.GoBildaPinpointDriver";
+    JNI_CLASS  = "com/qualcomm/hardware/gobilda/GoBildaPinpointDriver";
 );
 
 impl GoBildaPinpointDriver {
@@ -99,7 +99,7 @@ impl GoBildaPinpointDriver {
                     env env,
                     self.object,
                     "setEncoderDirections",
-                    "(Lorg/firstinspires/ftc/teamcode/GoBildaPinpointDriver$EncoderDirection;Lorg/firstinspires/ftc/teamcode/GoBildaPinpointDriver$EncoderDirection;)V",
+                    "(Lcom/qualcomm/hardware/gobilda/GoBildaPinpointDriver$EncoderDirection;Lcom/qualcomm/hardware/gobilda/GoBildaPinpointDriver$EncoderDirection;)V",
                     [&x, &y]
                 )?;
                 jni::errors::Result::Ok(())
@@ -126,8 +126,8 @@ impl From<Direction> for InternalDirection {
 
 enum_variant_into! {
     InternalDirection,
-    "org/firstinspires/ftc/teamcode/GoBildaPinpointDriver$EncoderDirection",
-    "org.firstinspires.ftc.teamcode.GoBildaPinpointDriver.EncoderDirection",
+    "com/qualcomm/hardware/gobilda/GoBildaPinpointDriver$EncoderDirection",
+    "com.qualcomm.hardware.gobilda.GoBildaPinpointDriver.EncoderDirection",
     Forward,
     Reverse,
 }

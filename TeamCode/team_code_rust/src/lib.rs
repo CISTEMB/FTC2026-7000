@@ -1,23 +1,30 @@
 //! The main code.
 use std::time::Duration;
 
-use ftc::{PressEdge, ftc, hardware::{Direction, RunMode}, prelude::*};
+use ftc::{
+    PressEdge, ftc,
+    glam::dvec2,
+    hardware::{Direction, RunMode},
+    pedro::Pose,
+    prelude::*,
+};
 
-pub mod pinpoint;
+// pub mod pinpoint;
 
 /// Driving subsystem.
 #[derive(Debug)]
+#[allow(clippy::missing_docs_in_private_items)]
 pub struct Drive {
     left_front: DcMotor,
     right_front: DcMotor,
     left_rear: DcMotor,
     right_rear: DcMotor,
     /// Whether we're currently in fast mode.
-    fast: bool,
+    pub fast: bool,
 }
 
 impl Drive {
-    /// Get a [`Drive`] with the default names.
+    /// Get a [`Drive`] with the default names and rotations.
     #[must_use]
     pub fn with_default_names(hardware: &Hardware) -> Self {
         let out = Drive {
@@ -27,13 +34,24 @@ impl Drive {
             right_rear: hardware.get("rightRear"),
             fast: false,
         };
-        out.right_front.set_direction(Direction::Reverse);
-        out.right_rear.set_direction(Direction::Reverse);
+        out.set_direction(Direction::Forward);
         out
+    }
+    /// Set the direction of the motors, inverting the right motors as needed.
+    pub fn set_direction(&self, dir: Direction) {
+        self.left_front.set_direction(dir);
+        self.left_rear.set_direction(dir);
+        self.right_front.set_direction(-dir);
+        self.right_rear.set_direction(-dir);
     }
     /// Set the [`RunMode`] of all of the motors.
     pub fn set_mode(&self, mode: RunMode) {
-        for motor in [&self.left_front, &self.right_front, &self.left_rear, &self.right_rear] {
+        for motor in [
+            &self.left_front,
+            &self.right_front,
+            &self.left_rear,
+            &self.right_rear,
+        ] {
             motor.set_mode(mode);
         }
     }
@@ -59,6 +77,34 @@ impl Drive {
     }
 }
 
+/// Base autonomous
+#[ftc(name = "Autonomous", linear, auto)]
+pub fn auto(ftc: &ftc::FtcContext) {
+    let pedro = ftc.pedro(Pose::new_degrees(0.0, 0.0, 0.0));
+
+    let path = pedro
+        .line(pedro.pose(), Pose::new_degrees(10.0, 10.0, 45.0))
+        .heading_face(dvec2(-10.0, 10.0))
+        .curve([
+            Pose::new_degrees(10.0, 10.0, 45.0),
+            Pose::new_degrees(0.0, 20.0, 270.0),
+        ]);
+
+    ftc.telemetry().add_data("Status", "Initialized");
+    ftc.telemetry().update();
+
+    ftc.wait_for_start();
+
+    ftc.telemetry().add_data("Status", "Running");
+    ftc.telemetry().update();
+
+    pedro.follow(path)
+        .then(|ftc| {
+            ftc.telemetry().add_data("Status", "Complete");
+            ftc.telemetry().update();
+        });
+}
+
 /// Base teleop
 #[ftc(name = "Teleop", linear, teleop)]
 pub fn teleop(ftc: &ftc::FtcContext) {
@@ -78,7 +124,11 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     while ftc.running() {
         ftc.telemetry().add_data("Status", "Running");
 
-        let (forward, turn, strafe) = (gamepad1.left_stick_y(), gamepad1.left_stick_x(), gamepad1.right_stick_x());
+        let (forward, turn, strafe) = (
+            gamepad1.left_stick_y(),
+            gamepad1.left_stick_x(),
+            gamepad1.right_stick_x(),
+        );
 
         ftc.telemetry().add_data("Forward", forward);
         ftc.telemetry().add_data("Turn", turn);
@@ -106,7 +156,7 @@ struct IterativeState {
     iterative,
     teleop,
     group = "Example",
-    disabled,
+    disabled
 )]
 fn my_iterative_op_mode(iterative: &ftc::IterativeContext) {
     iterative.init(|ftc: &ftc::FtcContext, state: &mut IterativeState| {
