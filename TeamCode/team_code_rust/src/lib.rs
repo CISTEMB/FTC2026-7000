@@ -14,10 +14,10 @@ config! {
     HAS_EXP_HUB = false;
 
     static IMU = CTRL_HUB/EmbeddedIMU;
-    static FRONT_LEFT = CTRL_HUB/Motor.GoBilda5204(0);
-    static FRONT_RIGHT = CTRL_HUB/Motor.GoBilda5204(1);
-    static REAR_LEFT = CTRL_HUB/Motor.GoBilda5204(2);
-    static REAR_RIGHT = CTRL_HUB/Motor.GoBilda5204(3);
+    static LEFT_FRONT = CTRL_HUB/Motor.GoBilda5204(0);
+    static RIGHT_FRONT = CTRL_HUB/Motor.GoBilda5204(1);
+    static LEFT_REAR = CTRL_HUB/Motor.GoBilda5204(2);
+    static RIGHT_REAR = CTRL_HUB/Motor.GoBilda5204(3);
 }
 
 /// Driving subsystem.
@@ -37,10 +37,10 @@ impl Drive {
     #[must_use]
     pub fn with_default_names(hardware: &Hardware) -> Self {
         let out = Drive {
-            left_front: hardware.get(FRONT_LEFT),
-            right_front: hardware.get(FRONT_RIGHT),
-            left_rear: hardware.get(REAR_LEFT),
-            right_rear: hardware.get(REAR_RIGHT),
+            left_front: hardware.get(LEFT_FRONT),
+            right_front: hardware.get(RIGHT_FRONT),
+            left_rear: hardware.get(LEFT_REAR),
+            right_rear: hardware.get(RIGHT_REAR),
             fast: false,
         };
         out.set_direction(Direction::Forward);
