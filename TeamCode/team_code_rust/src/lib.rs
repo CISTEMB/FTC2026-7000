@@ -1,15 +1,24 @@
 //! The main code.
-use std::time::Duration;
-
 use ftc::{
-    PressEdge, ftc,
+    ftc,
     glam::dvec2,
-    hardware::{Direction, RunMode},
+    hardware::{Direction, RunMode, config::config},
     pedro::Pose,
     prelude::*,
 };
 
 // pub mod pinpoint;
+
+config! {
+    CONFIG_NAME = "FTC2026-7000";
+    HAS_EXP_HUB = false;
+
+    static IMU = CTRL_HUB/EmbeddedIMU;
+    static FRONT_LEFT = CTRL_HUB/Motor.GoBilda5204(0);
+    static FRONT_RIGHT = CTRL_HUB/Motor.GoBilda5204(1);
+    static REAR_LEFT = CTRL_HUB/Motor.GoBilda5204(2);
+    static REAR_RIGHT = CTRL_HUB/Motor.GoBilda5204(3);
+}
 
 /// Driving subsystem.
 #[derive(Debug)]
@@ -28,10 +37,10 @@ impl Drive {
     #[must_use]
     pub fn with_default_names(hardware: &Hardware) -> Self {
         let out = Drive {
-            left_front: hardware.get("leftFront"),
-            right_front: hardware.get("rightFront"),
-            left_rear: hardware.get("leftRear"),
-            right_rear: hardware.get("rightRear"),
+            left_front: hardware.get(FRONT_LEFT),
+            right_front: hardware.get(FRONT_RIGHT),
+            left_rear: hardware.get(REAR_LEFT),
+            right_rear: hardware.get(REAR_RIGHT),
             fast: false,
         };
         out.set_direction(Direction::Forward);
@@ -39,10 +48,10 @@ impl Drive {
     }
     /// Set the direction of the motors, inverting the right motors as needed.
     pub fn set_direction(&self, dir: Direction) {
-        self.left_front.set_direction(dir);
-        self.left_rear.set_direction(dir);
-        self.right_front.set_direction(-dir);
-        self.right_rear.set_direction(-dir);
+        self.left_front.set_direction(-dir);
+        self.left_rear.set_direction(-dir);
+        self.right_front.set_direction(dir);
+        self.right_rear.set_direction(dir);
     }
     /// Set the [`RunMode`] of all of the motors.
     pub fn set_mode(&self, mode: RunMode) {
@@ -58,7 +67,7 @@ impl Drive {
     /// Arcade drive. Pass in values from the gamepad.
     pub fn arcade_drive(&self, forward: f64, turn: f64, strafe: f64) {
         let turn = turn * 0.75;
-        let strafe = -strafe;
+        let forward = -forward;
 
         // Calculate speed for each motor
         let left_front = forward + turn + strafe;
@@ -78,7 +87,7 @@ impl Drive {
 }
 
 /// Base autonomous
-#[ftc(name = "Autonomous", linear, auto)]
+#[ftc(name = "Autonomous", linear, auto, config = FTC2026_7000)]
 pub fn auto(ftc: &ftc::FtcContext) {
     let pedro = ftc.pedro(Pose::new_degrees(0.0, 0.0, 0.0));
 
@@ -98,15 +107,14 @@ pub fn auto(ftc: &ftc::FtcContext) {
     ftc.telemetry().add_data("Status", "Running");
     ftc.telemetry().update();
 
-    pedro.follow(path)
-        .then(|ftc| {
-            ftc.telemetry().add_data("Status", "Complete");
-            ftc.telemetry().update();
-        });
+    pedro.follow(path).then(|ftc| {
+        ftc.telemetry().add_data("Status", "Complete");
+        ftc.telemetry().update();
+    });
 }
 
 /// Base teleop
-#[ftc(name = "Teleop", linear, teleop)]
+#[ftc(name = "Teleop", linear, teleop, config = FTC2026_7000)]
 pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
 
@@ -140,60 +148,59 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     }
 }
 
-/// State used in the iterative op mode. Essentially equivalent to adding properties to a class in
-/// java. Has to implement Default (which can be derived in most scenarios as you see below) and
-/// some other requirements the compiler will enforce.
-#[derive(Default)]
-struct IterativeState {
-    /// Devices implement Default by returning a null object of sorts that panics
-    /// if you use it, but comes in handy for stuff like this.
-    motor: DcMotor,
-}
+// /// State used in the iterative op mode. Essentially equivalent to adding properties to a class in
+// /// java. Has to implement Default (which can be derived in most scenarios as you see below) and
+// /// some other requirements the compiler will enforce.
+// #[derive(Default)]
+// struct IterativeState {
+//     /// Devices implement Default by returning a null object of sorts that panics
+//     /// if you use it, but comes in handy for stuff like this.
+//     motor: DcMotor,
+// }
 
-/// Example iterative op mode.
-#[ftc(
-    name = "Example: My Iterative Op Mode",
-    iterative,
-    teleop,
-    group = "Example",
-    disabled
-)]
-fn my_iterative_op_mode(iterative: &ftc::IterativeContext) {
-    iterative.init(|ftc: &ftc::FtcContext, state: &mut IterativeState| {
-        // equivalent to hardwareMap.get(DcMotor.class, "motor") in Java:
-        state.motor = ftc.hardware().get::<DcMotor>("motor");
-        state.motor.set_direction(ftc::hardware::Direction::Forward);
+// /// Example iterative op mode.
+// #[ftc(
+//     name = "Example: My Iterative Op Mode",
+//     iterative,
+//     teleop,
+//     group = "Example",
+// )]
+// fn my_iterative_op_mode(iterative: &ftc::IterativeContext) {
+//     iterative.init(|ftc: &ftc::FtcContext, state: &mut IterativeState| {
+//         // equivalent to hardwareMap.get(DcMotor.class, "motor") in Java:
+//         state.motor = ftc.hardware().get::<DcMotor>("motor");
+//         state.motor.set_direction(ftc::hardware::Direction::Forward);
 
-        let gamepad1 = ftc.gamepad1();
+//         let gamepad1 = ftc.gamepad1();
 
-        gamepad1.on_a(
-            move |ftc, _| {
-                ftc.telemetry().add_data("A", "Pressed");
-            },
-            PressEdge::Press,
-        );
-        gamepad1.on_a(
-            move |ftc, _| {
-                ftc.telemetry().add_data("A", "Released");
-            },
-            PressEdge::Release,
-        );
+//         gamepad1.on_a(
+//             move |ftc, _| {
+//                 ftc.telemetry().add_data("A", "Pressed");
+//             },
+//             PressEdge::Press,
+//         );
+//         gamepad1.on_a(
+//             move |ftc, _| {
+//                 ftc.telemetry().add_data("A", "Released");
+//             },
+//             PressEdge::Release,
+//         );
 
-        ftc.telemetry().add_data("Status", "Initialized");
-        ftc.telemetry().update();
-    });
+//         ftc.telemetry().add_data("Status", "Initialized");
+//         ftc.telemetry().update();
+//     });
 
-    iterative.start(|_ftc, state: &mut IterativeState| {
-        state.motor.set_power(0.5);
-        std::thread::sleep(Duration::from_secs_f32(2.0));
-        state.motor.set_power(0.0);
-    });
+//     iterative.start(|_ftc, state: &mut IterativeState| {
+//         state.motor.set_power(0.5);
+//         std::thread::sleep(Duration::from_secs_f32(2.0));
+//         state.motor.set_power(0.0);
+//     });
 
-    iterative.stop(|ftc, _state: &mut IterativeState| {
-        // state has to have a type, so use the state type and ignore the value.
-        info!("Ran for {:?}!", ftc.runtime());
-    });
+//     iterative.stop(|ftc, _state: &mut IterativeState| {
+//         // state has to have a type, so use the state type and ignore the value.
+//         info!("Ran for {:?}!", ftc.runtime());
+//     });
 
-    // attempting to call wait_for_start in a interative op mode will immediately return and
-    // print a warning
-}
+//     // attempting to call wait_for_start in a interative op mode will immediately return and
+//     // print a warning
+// }
