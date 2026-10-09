@@ -10,10 +10,10 @@ use ftc::{
 // pub mod pinpoint;
 
 config! {
-    CONFIG_NAME = "FTC2026-7000";
+    CONFIG_NAME = "ftc2026_7000";
     HAS_EXP_HUB = false;
 
-    static IMU = CTRL_HUB/EmbeddedIMU;
+    // static IMU = CTRL_HUB/EmbeddedIMU;
     static LEFT_FRONT = CTRL_HUB/Motor.GoBilda5204(0);
     static RIGHT_FRONT = CTRL_HUB/Motor.GoBilda5204(1);
     static LEFT_REAR = CTRL_HUB/Motor.GoBilda5204(2);
