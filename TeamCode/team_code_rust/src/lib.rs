@@ -11,13 +11,15 @@ use ftc::{
 
 config! {
     CONFIG_NAME = "ftc2026_7000";
-    HAS_EXP_HUB = false;
+    HAS_EXP_HUB = true;
 
     // static IMU = CTRL_HUB/EmbeddedIMU;
     static LEFT_FRONT = CTRL_HUB/Motor.GoBilda5204(0);
     static RIGHT_FRONT = CTRL_HUB/Motor.GoBilda5204(1);
     static LEFT_REAR = CTRL_HUB/Motor.GoBilda5204(2);
     static RIGHT_REAR = CTRL_HUB/Motor.GoBilda5204(3);
+
+    static PICKUP = EXP_HUB/Motor.GoBilda5204(0);
 }
 
 /// Driving subsystem.
@@ -119,6 +121,8 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
 
     let mut motors = Drive::with_default_names(&hardware);
+    let pickup = hardware.get(PICKUP);
+    pickup.set_direction(Direction::Reverse);
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -144,6 +148,11 @@ pub fn teleop(ftc: &ftc::FtcContext) {
 
         motors.fast = gamepad1.left_trigger() > 0.75;
         motors.arcade_drive(forward, turn, strafe);
+
+        let pickup_power = gamepad1.right_trigger();
+        ftc.telemetry().add_data("Pickup", pickup_power);
+        pickup.set_power(pickup_power);
+
         ftc.telemetry().update();
     }
 }
