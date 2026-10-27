@@ -6,6 +6,7 @@
             <goBILDA5202SeriesMotor name="RIGHT_FRONT" port="1" />
             <goBILDA5202SeriesMotor name="LEFT_REAR" port="2" />
             <goBILDA5202SeriesMotor name="RIGHT_REAR" port="3" />
+            <goBILDAPinpoint name="PINPOINT" port="0" bus="1" />
         </LynxModule>
         <LynxModule name="Expansion Hub 1" port="1">
             <goBILDA5202SeriesMotor name="PICKUP" port="0" />

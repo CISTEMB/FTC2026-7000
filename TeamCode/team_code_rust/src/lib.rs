@@ -19,6 +19,8 @@ config! {
     static LEFT_REAR = CTRL_HUB/Motor.GoBilda5204(2);
     static RIGHT_REAR = CTRL_HUB/Motor.GoBilda5204(3);
 
+    static PINPOINT = CTRL_HUB/I2C.GoBildaPinpoint(1);
+
     static PICKUP = EXP_HUB/Motor.GoBilda5204(0);
 }
 
@@ -121,7 +123,7 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
 
     let mut motors = Drive::with_default_names(&hardware);
-    let pickup = hardware.get(PICKUP);
+    let pickup = hardware.get::<DcMotor>(PICKUP);
     pickup.set_direction(Direction::Reverse);
 
     ftc.telemetry().add_data("Status", "Initialized");
