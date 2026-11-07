@@ -20,6 +20,7 @@ config! {
     static RIGHT_REAR = CTRL_HUB/Motor.GoBilda5204(3);
 
     static PINPOINT = CTRL_HUB/I2C.GoBildaPinpoint(1);
+    static SPINNER = CTRL_HUB/CRServo(0);
 
     static PICKUP = EXP_HUB/Motor.GoBilda5204(0);
 }
@@ -123,8 +124,13 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
 
     let mut motors = Drive::with_default_names(&hardware);
+
+    //pickup is the motor that powers the intake rubber band wheels
     let pickup = hardware.get::<DcMotor>(PICKUP);
     pickup.set_direction(Direction::Reverse);
+
+    //spinner is the servo that sits under the tray and moves the pollen closer to the launcher
+    let spinner: CRServo = hardware.get(SPINNER);
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -134,6 +140,9 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     // you can store it here, or just call the method directly in the body; storing it once is
     // slightly more efficient
     let gamepad1 = ftc.gamepad1();
+
+    // spinner speed is remembered between loops; starts stopped
+    let mut spinner_power: f64 = 0.0;
 
     while ftc.running() {
         ftc.telemetry().add_data("Status", "Running");
@@ -151,9 +160,28 @@ pub fn teleop(ftc: &ftc::FtcContext) {
         motors.fast = gamepad1.left_trigger() > 0.75;
         motors.arcade_drive(forward, turn, strafe);
 
-        let pickup_power = gamepad1.right_trigger();
+        // right trigger runs the intake; holding right bumper runs it in reverse at full power
+        let pickup_power: f64 = if gamepad1.right_bumper() {
+            -1.0
+        } else {
+            gamepad1.right_trigger()
+        };
         ftc.telemetry().add_data("Pickup", pickup_power);
+        
         pickup.set_power(pickup_power);
+
+        // A toggles the spinner forward on/off
+        if gamepad1.a_just_pressed() {
+            spinner_power = if spinner_power > 0.0 { 0.0 } else { 1.0 };
+        }
+        // B toggles the spinner in reverse on/off
+        if gamepad1.b_just_pressed() {
+            spinner_power = if spinner_power < 0.0 { 0.0 } else { -1.0 };
+        }
+        
+        ftc.telemetry().add_data("Spinner", spinner_power);
+        spinner.set_power(spinner_power);
+
 
         ftc.telemetry().update();
     }
