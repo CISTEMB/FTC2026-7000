@@ -1,7 +1,6 @@
 //! The main code.
 use ftc::{
     ftc,
-    glam::dvec2,
     hardware::{Direction, RunMode, config::config},
     pedro::Pose,
     prelude::*,
@@ -94,15 +93,12 @@ impl Drive {
 /// Base autonomous
 #[ftc(name = "Autonomous", linear, auto, config = FTC2026_7000)]
 pub fn auto(ftc: &ftc::FtcContext) {
-    let pedro = ftc.pedro(Pose::new_degrees(0.0, 0.0, 0.0));
+    let pedro = ftc.pedro_with_constants(
+        "org/firstinspires/ftc/teamcode/pedro/Constants7000",
+        Pose::new_degrees(0.0, 0.0, 0.0),
+    );
 
-    let path = pedro
-        .line(pedro.pose(), Pose::new_degrees(10.0, 10.0, 45.0))
-        .heading_face(dvec2(-10.0, 10.0))
-        .curve([
-            Pose::new_degrees(10.0, 10.0, 45.0),
-            Pose::new_degrees(0.0, 20.0, 270.0),
-        ]);
+    let path = pedro.line(pedro.pose(), Pose::new_degrees(0.0, -12.0, 45.0));
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -122,18 +118,23 @@ pub fn auto(ftc: &ftc::FtcContext) {
 #[ftc(name = "Teleop", linear, teleop, config = FTC2026_7000)]
 pub fn teleop(ftc: &ftc::FtcContext) {
     let hardware = ftc.hardware();
+    let telemetry = ftc.telemetry();
 
-    let mut motors = Drive::with_default_names(&hardware);
+    // let mut motors = Drive::with_default_names(&hardware);
+    let pedro = ftc.pedro_with_constants(
+        "org/firstinspires/ftc/teamcode/pedro/Constants7000",
+        Pose::new_degrees(0.0, 0.0, 0.0),
+    );
 
     //pickup is the motor that powers the intake rubber band wheels
-    let pickup = hardware.get::<DcMotor>(PICKUP);
+    let pickup = hardware.get(PICKUP);
     pickup.set_direction(Direction::Reverse);
 
     //spinner is the servo that sits under the tray and moves the pollen closer to the launcher
-    let spinner: CRServo = hardware.get(SPINNER);
+    let spinner = hardware.get(SPINNER);
 
-    ftc.telemetry().add_data("Status", "Initialized");
-    ftc.telemetry().update();
+    telemetry.add_data("Status", "Initialized");
+    telemetry.update();
 
     ftc.wait_for_start();
 
@@ -145,45 +146,49 @@ pub fn teleop(ftc: &ftc::FtcContext) {
     let mut spinner_power: f64 = 0.0;
 
     while ftc.running() {
-        ftc.telemetry().add_data("Status", "Running");
+        telemetry.add_data("Status", "Running");
 
-        let (forward, turn, strafe) = (
+        let (mut forward, turn, mut strafe) = (
             gamepad1.left_stick_y(),
             gamepad1.left_stick_x(),
             gamepad1.right_stick_x(),
         );
 
-        ftc.telemetry().add_data("Forward", forward);
-        ftc.telemetry().add_data("Turn", turn);
-        ftc.telemetry().add_data("Strafe", strafe);
+        telemetry.add_data("Forward", forward);
+        telemetry.add_data("Turn", turn);
+        telemetry.add_data("Strafe", strafe);
 
-        motors.fast = gamepad1.left_trigger() > 0.75;
-        motors.arcade_drive(forward, turn, strafe);
+        if gamepad1.left_trigger() > 0.75 {
+            // fast mode
+            forward *= 2.0;
+            strafe *= 2.0;
+        }
+        // motors.arcade_drive(forward, turn, strafe);
+        pedro.manual(forward, strafe, turn);
 
         // right trigger runs the intake; holding right bumper runs it in reverse at full power
-        let pickup_power: f64 = if gamepad1.right_bumper() {
-            -1.0
-        } else {
-            gamepad1.right_trigger()
-        };
-        ftc.telemetry().add_data("Pickup", pickup_power);
-        
+        let pickup_power: f64 = if gamepad1.y() { -1.0 } else { 1.0 } * gamepad1.right_trigger();
+        telemetry.add_data("Pickup", pickup_power);
+
         pickup.set_power(pickup_power);
 
         // A toggles the spinner forward on/off
         if gamepad1.a_just_pressed() {
-            spinner_power = if spinner_power > 0.0 { 0.0 } else { 1.0 };
+            spinner_power = if spinner_power > 0.0 { 0.0 } else { -1.0 };
         }
         // B toggles the spinner in reverse on/off
         if gamepad1.b_just_pressed() {
-            spinner_power = if spinner_power < 0.0 { 0.0 } else { -1.0 };
+            spinner_power = if spinner_power < 0.0 { 0.0 } else { 1.0 };
         }
-        
-        ftc.telemetry().add_data("Spinner", spinner_power);
+
+        if gamepad1.a() && gamepad1.b() {
+            spinner_power = 0.0;
+        }
+
+        telemetry.add_data("Spinner", spinner_power);
         spinner.set_power(spinner_power);
 
-
-        ftc.telemetry().update();
+        telemetry.update();
     }
 }
 
