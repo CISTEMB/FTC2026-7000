@@ -1,4 +1,6 @@
 //! The main code.
+use std::time::{Duration, Instant};
+
 use ftc::{
     ftc,
     hardware::{Direction, RunMode, config::config},
@@ -98,7 +100,7 @@ pub fn auto(ftc: &ftc::FtcContext) {
         Pose::new_degrees(0.0, 0.0, 0.0),
     );
 
-    let path = pedro.line(pedro.pose(), Pose::new_degrees(0.0, -12.0, 45.0));
+    // let path = pedro.line(pedro.pose(), Pose::new_degrees(0.0, -12.0, 0.0));
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -108,10 +110,21 @@ pub fn auto(ftc: &ftc::FtcContext) {
     ftc.telemetry().add_data("Status", "Running");
     ftc.telemetry().update();
 
-    pedro.follow(path).then(|ftc| {
-        ftc.telemetry().add_data("Status", "Complete");
-        ftc.telemetry().update();
-    });
+    // pedro.follow(path).then(|ftc| {
+    //     ftc.telemetry().add_data("Status", "Complete");
+    //     ftc.telemetry().update();
+    // });
+
+    // while pedro.pose().pos.y < 12.0 {
+    //     dbg!(pedro.pose());
+    //     pedro.manual(0.0, 0.6, 0.0);
+    // }
+
+    let start = Instant::now();
+
+    while start.elapsed() < Duration::from_millis(500) {
+        pedro.manual(0.0, 0.6, 0.0);
+    }
 }
 
 /// Base teleop
@@ -149,20 +162,20 @@ pub fn teleop(ftc: &ftc::FtcContext) {
         telemetry.add_data("Status", "Running");
 
         let (mut forward, turn, mut strafe) = (
-            gamepad1.left_stick_y(),
-            gamepad1.left_stick_x(),
+            -gamepad1.left_stick_y(),
+            -gamepad1.left_stick_x(),
             gamepad1.right_stick_x(),
         );
-
-        telemetry.add_data("Forward", forward);
-        telemetry.add_data("Turn", turn);
-        telemetry.add_data("Strafe", strafe);
 
         if gamepad1.left_trigger() > 0.75 {
             // fast mode
             forward *= 2.0;
             strafe *= 2.0;
         }
+
+        telemetry.add_data("Forward", forward);
+        telemetry.add_data("Turn", turn);
+        telemetry.add_data("Strafe", strafe);
         // motors.arcade_drive(forward, turn, strafe);
         pedro.manual(forward, strafe, turn);
 
