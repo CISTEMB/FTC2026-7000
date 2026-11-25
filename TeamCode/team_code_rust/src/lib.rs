@@ -100,7 +100,7 @@ pub fn auto(ftc: &ftc::FtcContext) {
         Pose::new_degrees(0.0, 0.0, 0.0),
     );
 
-    // let path = pedro.line(pedro.pose(), Pose::new_degrees(0.0, -12.0, 0.0));
+    let path = pedro.line(pedro.pose(), Pose::new_degrees(0.0, 12.0, 0.0));
 
     ftc.telemetry().add_data("Status", "Initialized");
     ftc.telemetry().update();
@@ -110,21 +110,22 @@ pub fn auto(ftc: &ftc::FtcContext) {
     ftc.telemetry().add_data("Status", "Running");
     ftc.telemetry().update();
 
-    // pedro.follow(path).then(|ftc| {
-    //     ftc.telemetry().add_data("Status", "Complete");
-    //     ftc.telemetry().update();
-    // });
+    pedro.follow(path).then(move |ftc| {
+        ftc.telemetry().add_data("Status", "Complete");
+        ftc.telemetry().update();
+        pedro.stop();
+    });
 
     // while pedro.pose().pos.y < 12.0 {
     //     dbg!(pedro.pose());
     //     pedro.manual(0.0, 0.6, 0.0);
     // }
 
-    let start = Instant::now();
+    // let start = Instant::now();
 
-    while start.elapsed() < Duration::from_millis(500) {
-        pedro.manual(0.0, 0.6, 0.0);
-    }
+    // while start.elapsed() < Duration::from_millis(500) {
+    //     pedro.manual(0.0, 0.6, 0.0);
+    // }
 }
 
 /// Base teleop
